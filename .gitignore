@@ -1,0 +1,37 @@
+# Compiled/cached Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporaries
+.ipynb_checkpoints/
+*.swp
+
+# Outputs
+*.svg
+*.eps
+*.out
+
+# Model and other data
+*.pth
+*.npy
+.idea
+*.pkl
+*.DS_Store
+.pytest_cache/
+*.pyc
+/data
+
+# Latex generated files
+*.aux
+*.log
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+
+# Sandbox directories
+**/sandbox
+
+# Experiment outputs
+**/experiment_outputs

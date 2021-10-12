@@ -7,7 +7,7 @@ from tqdm import tqdm
 from scipy.special import binom
 import numpy as np
 
-from sampling import large_scale_sample_alternative, generate_full_Z, subsetting_full_Z
+from src.sampling import large_scale_sample_alternative, generate_full_Z, subsetting_full_Z
 
 class CorrelatedLinearModel(object):
 
