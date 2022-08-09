@@ -41,7 +41,7 @@ class RKHSSHAP(object):
         # Set up kernel
         rbf = RBFKernel()
         rbf.raw_lengthscale.requires_grad = False
-        self.k = rbf
+        self.k = rbf.to(self.X.device)
 
         # Run Kernel Ridge Regression (need alphas!)
         Kxx = rbf(self.X_scaled)
@@ -58,13 +58,14 @@ class RKHSSHAP(object):
         n_ = X_new.shape[0]
         zc = (z == False)
 
-        reference = (self.ypred.mean() * torch.ones((1, n_))).float()
+        reference = (self.ypred.mean() * torch.ones((1, n_)).to(X_new.device)).float()
         self.reference = reference
 
         if z.sum() == self.m:
             # features all active
             new_ypred = self.alphas.T @ self.k(self.X_scaled, X_new_scaled).evaluate()
-            return new_ypred - reference
+            output = new_ypred - reference
+            return output.cpu().numpy()
         
         elif z.sum() == 0:
             return 0
@@ -75,9 +76,9 @@ class RKHSSHAP(object):
             K_SSp = self.k(X_S, Xp_S).evaluate().float()
             K_Sc = self.k(X_Sc, X_Sc)
 
-            KME_mat = K_Sc.evaluate().mean(axis=1)[:, np.newaxis] * torch.ones((self.n, n_))
-
-            return self.alphas.T @ (K_SSp * KME_mat) - reference
+            KME_mat = K_Sc.evaluate().mean(axis=1)[:, np.newaxis] * torch.ones((self.n, n_)).to(X_new.device)
+            output=self.alphas.T @ (K_SSp * KME_mat) - reference
+            return output.cpu().numpy()
 
     def _value_observation(self, z, X_new):
 
@@ -86,14 +87,14 @@ class RKHSSHAP(object):
         n_ = X_new.shape[0]
         zc = (z == False)
 
-        reference = (self.ypred.mean() * torch.ones((1, n_))).float()
+        reference = (self.ypred.mean() * torch.ones((1, n_)).to(X_new.device)).float()
         self.reference = reference
 
         if z.sum() == self.m:
             new_ypred = self.alphas.T @ self.k(self.X_scaled, X_new_scaled).evaluate()
+            output = new_ypred - reference
+            return output.cpu().numpy()
 
-            return new_ypred - reference
-        
         elif z.sum() == 0:
             return 0
 
@@ -105,9 +106,8 @@ class RKHSSHAP(object):
             K_SS = self.k(X_S, X_S)
 
             Xi_S = (K_SS.add_diag(self.n * self.lambda_cme).inv_matmul(K_Sc.evaluate())).T
-
-            return self.alphas.T @ (K_SSp * (Xi_S @ K_SSp)) - reference
-
+            output = self.alphas.T @ (K_SSp * (Xi_S @ K_SSp)) - reference
+            return output.cpu().numpy()
 
     def fit(self, X_new, method, sample_method, num_samples=100, wls_reg=1e-10):
 
